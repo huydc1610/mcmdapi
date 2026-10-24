@@ -77,7 +77,7 @@ app.get('/v3/users/:number', handleUserRequest);
 app.get('/api/users/:number', handleUserRequest);
 
 // Endpoint kiểm tra server hoạt động
-app.get('/', (req, res) => {
+app.get(['/', '/api'], (req, res) => {
   res.json({
     name: 'MDMC Aggregated API',
     status: 'online',
