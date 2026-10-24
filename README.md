@@ -30,7 +30,7 @@ Server mặc định chạy tại: `http://localhost:3000`
 - `GET /api/users/:number`
 - `GET /v3/users/:number`
 
-Với `:number` là ID người dùng (ví dụ: `1`).
+Với `:number` là ID người dùng (ví dụ: `1` hoặc `35,755` - API tự động loại bỏ dấu phẩy/chấm/khoảng cách để chuẩn hóa thành `35755`).
 
 ### 1. Định dạng mặc định (Gộp `stats` vào thông tin user)
 **Yêu cầu:**

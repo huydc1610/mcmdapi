@@ -10,7 +10,12 @@ app.use(express.json());
 
 // Helper handler to aggregate user profile and stats
 async function handleUserRequest(req, res) {
-  const { number } = req.params;
+  let number = req.params.number || req.query.number || req.query.uid;
+
+  // Xóa dấu (dấu phẩy, dấu chấm, khoảng trắng) nếu có, ví dụ: "35,755" -> "35755"
+  if (typeof number === 'string') {
+    number = number.replace(/[,.\s]/g, '');
+  }
 
   if (!number || !/^\d+$/.test(number)) {
     return res.status(400).json({
@@ -47,6 +52,14 @@ async function handleUserRequest(req, res) {
     const userData = await userRes.json();
     const statsData = statsRes.ok ? await statsRes.json() : null;
 
+    // Đảm bảo xóa dấu ở giá trị uid nếu có (ví dụ: "35,755" -> 35755)
+    if (userData && userData.uid !== undefined && userData.uid !== null) {
+      if (typeof userData.uid === 'string') {
+        const cleanedUid = userData.uid.replace(/[,.\s]/g, '');
+        userData.uid = /^\d+$/.test(cleanedUid) ? Number(cleanedUid) : cleanedUid;
+      }
+    }
+
     // Gộp dữ liệu: thêm object 'stats' vào thông tin user
     // Nếu có query param ?format=nested, trả về dạng { user: ..., stats: ... }
     if (req.query.format === 'nested') {
@@ -75,6 +88,10 @@ async function handleUserRequest(req, res) {
 app.get('/users/:number', handleUserRequest);
 app.get('/v3/users/:number', handleUserRequest);
 app.get('/api/users/:number', handleUserRequest);
+app.get('/user/:number', handleUserRequest);
+app.get('/api/user/:number', handleUserRequest);
+app.get('/users', handleUserRequest);
+app.get('/api/users', handleUserRequest);
 
 // Endpoint kiểm tra server hoạt động
 app.get(['/', '/api'], (req, res) => {
@@ -88,7 +105,7 @@ app.get(['/', '/api'], (req, res) => {
 // Export app cho các nền tảng serverless như Vercel
 export default app;
 
-if (!process.env.VERCEL) {
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
     console.log(`Server đang chạy tại http://localhost:${PORT}`);
     console.log(`Ví dụ: http://localhost:${PORT}/users/1`);
